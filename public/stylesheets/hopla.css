@@ -103,7 +103,7 @@ code {
 
 pre code {
   display: inline-block;
-  padding: 1rem;
+  padding: 0.5rem;
   font-size: 80%;
   font-family: "ubuntu-mono", sans-serif;
   background: #e1be66; }
