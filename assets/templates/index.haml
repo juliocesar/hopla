@@ -1,0 +1,46 @@
+!!! 5
+%html(lang="en")
+  %head
+    %meta(charset="utf-8")
+    %title Hopla
+    %meta(name="keywords" value="Development suite, awesome, SASS, CoffeeScript, Cooler than thou")
+    %script(src="//use.typekit.net/rsl5apz.js")
+    %script
+      try{Typekit.load();}catch(e){}
+    %link(rel="stylesheet" href="/stylesheets/hopla.css")
+  %body
+    .wrapper
+    .hide-ad
+
+    .explain
+      %h1.logo
+        Hopla
+      %p
+        Hopla is not a utility belt. It's forged with the blood of
+        a thousand projects,
+      %p
+        Hopla runs as a Rake task. You can customise it, like the warrior-programmer
+        you are. There are no hidden layers or anything of the sort. Read the source,
+        and you'll understand what it does.
+      %p
+        To get Hopla, run:
+      %pre
+        %code
+          $ wget http://raw.github.com/juliocesar/hopla.io/Rakefile
+      %p
+        Then run the following command and follow the instructions:
+      %pre
+        %code
+          $ rake hopla
+      %p
+        Hopla will output what it compiles in <code>assets/</code>
+        into the <code>public/</code> directory. It features a built-in
+        web server for use in development, but deploy as you see fit
+        for real combat.
+      %p
+        Hopla was built with the fury of a thousand suns by
+        <a href="https://twitter.com/julio_ody">Julio</a>.
+
+    %script(src="/javascripts/hopla.js")
+
+

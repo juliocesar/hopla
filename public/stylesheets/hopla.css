@@ -1,0 +1,112 @@
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  font-size: 100%;
+  vertical-align: baseline; }
+
+html {
+  line-height: 1; }
+
+ol, ul {
+  list-style: none; }
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0; }
+
+caption, th, td {
+  text-align: left;
+  font-weight: normal;
+  vertical-align: middle; }
+
+q, blockquote {
+  quotes: none; }
+  q:before, q:after, blockquote:before, blockquote:after {
+    content: "";
+    content: none; }
+
+a img {
+  border: none; }
+
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section, summary {
+  display: block; }
+
+* {
+  box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden; }
+
+body {
+  font-family: "museo";
+  color: black;
+  background: #e9d091;
+  line-height: 1.3; }
+
+a {
+  color: #cc0000; }
+
+.explain {
+  z-index: 100; }
+
+.hide-ad {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 100px;
+  background: #d2bb83;
+  z-index: 1000; }
+
+#tubular-container {
+  opacity: 0.1; }
+
+.logo {
+  margin-bottom: 1rem;
+  font-size: 3.6rem;
+  font-family: "edo";
+  color: red;
+  text-shadow: 1px 1px 0 black;
+  text-align: center; }
+
+.explain {
+  position: absolute;
+  width: 500px;
+  padding: 1rem;
+  left: 50px;
+  top: 30px;
+  bottom: 30px;
+  border-radius: 0.25rem;
+  z-index: 2000;
+  background: rgba(233, 208, 145, 0.8); }
+
+code {
+  padding: 0.125rem 0.25rem;
+  font-family: "ubuntu-mono", sans-serif;
+  background: #e1be66; }
+
+pre code {
+  display: inline-block;
+  padding: 1rem;
+  font-size: 80%;
+  font-family: "ubuntu-mono", sans-serif;
+  background: #e1be66; }
+
+p {
+  margin: 1rem 0; }
