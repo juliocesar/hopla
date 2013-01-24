@@ -13,7 +13,7 @@
 # And you're all set! Make sure you're running ruby 1.9
 
 # Dependencies
-Gems         = %w(rack colorize rb-fsevent listen sass compass sprockets)
+Gems         = %w(rack colorize compass sprockets nokogiri)
 Dependencies = Gems + %w(pathname logger fileutils)
 begin
   Dependencies.map { |lib| require lib }
@@ -39,8 +39,8 @@ end
 
 # Paths we'll be referring to throughout
 Root      = File.dirname __FILE__
-Public    = Root/'public'
-Assets    = Root/'assets'
+Public    = 'public'
+Assets    = 'assets'
 Scripts   = Assets/'javascripts'
 Styles    = Assets/'stylesheets'
 Templates = Assets/'templates'
@@ -60,48 +60,6 @@ end
 
 $logger = HoplaLogger.new STDOUT
 $logger.level = Logger::INFO
-# ---
-
-# The HTTP server
-server = Rack::Builder.app do
-  use Rack::Static,
-    :urls => %w(/stylesheets /javascripts /images),
-    :root => Root/'public'
-
-  run lambda { |env|
-    [ 200, { 'Content-Type' => 'text/html' }, File.open('public/index.html') ]
-  }
-end
-# ---
-
-# Helpers
-def time
-  time1 = Time.now
-  yield
-  time2 = Time.now
-  time2 - time1
-end
-
-def compile_asset asset_path, destination
-  duration = time { Compiler[asset_path].write_to Public/destination }
-  $logger.info "Compiled #{asset_path.red} (#{duration}s)"
-end
-
-def compile_template template_path
-  html_path = Public/(template_path.sub /.\w+$/, '.html')
-  template = Tilt.new Templates/template_path
-  FileUtils.mkdir_p File.dirname(html_path)
-  duration = time do
-    File.open(html_path, 'w') do |file|
-      file.write template.render
-    end
-  end
-  $logger.info "Compiled #{("templates"/template_path).red} (#{duration})"
-end
-
-def relativize_path path, from
-  Pathname(path).relative_path_from(Pathname(from)).to_s
-end
 # ---
 
 # The styles and scripts compiler
@@ -127,24 +85,28 @@ Compiler = Sprockets::Environment.new Pathname(Root) do |env|
 end
 # ---
 
-# The callback that controls what happens when a file inside the assets
-# dir changes
-file_changed = lambda do |modified, added, removed|
-  (modified + added).each do |asset_path|
-    if /^javascripts/ =~ asset_path
-      compile_asset asset_path, asset_path.sub(/.\w+$/, '.js')
-    elsif /^stylesheets/ =~ asset_path
-      compile_asset asset_path, asset_path.sub(/.\w+$/, '.css')
-    else
-      compile_template relativize_path(Assets/asset_path, Assets/'templates')
-    end
+# The HTTP server
+server = Rack::Builder.app do
+  FileServer = Rack::File.new Public
+
+  def index
+    [200, {'Content-Type' => 'text/html'}, File.open("#{Public}/index.html")]
   end
 
-  # Removes compiled templates for templates that were deleted
-  removed.each do |template_path|
-    html_path = Public/template_path.sub(/.\w+$/, '.html')
-    FileUtils.rm_f html_path
+  def not_found path
+    [404, {'Content-Type' => 'text/plain'}, ["File not found: #{path}"]]
   end
+
+  run lambda { |env|
+    response = FileServer.call env
+    response = Compiler.call env if response[0] == 404
+    if response[0] == 404
+      return index if env['PATH_INFO'] == '/'
+      not_found env['PATH_INFO']
+    else
+      response
+    end
+  }
 end
 # ---
 
@@ -152,10 +114,41 @@ namespace :hopla do
   # Runs Hopla
   task :run => [:check] do
     $logger.info "ὅπλα / Hopla starting. Listening on port 4567".red
-    Listener = Listen.to Assets, :relative_paths => true
-    Listener.change &file_changed
-    Listener.start false
     Rack::Server.start :app => server, :Port => 4567
+  end
+
+  # Compiles all templates, and assets referred to in said templates
+  task :compile do
+    Dir["#{Templates}/**/*"].each do |template|
+      target = Public/template.sub(Templates, '').sub(/.\w+$/, '.html')
+      File.open(target, 'w') do |file| file << Tilt.new(template).render; end
+      $logger.info "Compiled #{template.red}"
+    end
+
+    # For each HTML file in the public directory
+    Dir["#{Public}/**/*.html"].each do |html|
+
+      # .. open it with Nokogiri
+      document = Nokogiri::HTML File.read(html)
+
+      # ... get each script with a "src" attribute
+      document.css('script[src]').each do |script|
+        # ... if asset found in sprockets, compile/write it to public/
+        if asset = Compiler[script['src'].sub(/^\//, '')]
+          asset.write_to Public/script['src']
+          $logger.info "Compiled #{script['src'].sub(/^\//, '').red}"
+        end
+      end
+
+      # ... get each stylesheet
+      document.css('link[rel="stylesheet"][href]').each do |css|
+        # ... if asset found in sprockets, compile/write it to public/
+        if asset = Compiler[css['href'].sub(/^\//, '')]
+          asset.write_to Public/css['href']
+          $logger.info "Compiled #{css['href'].sub(/^\//, '').red}"
+        end
+      end
+    end
   end
 
   # Creates all the directories needed for Hopla
