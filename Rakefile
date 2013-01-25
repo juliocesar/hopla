@@ -90,7 +90,15 @@ server = Rack::Builder.app do
   FileServer = Rack::File.new Public
 
   def index
-    [200, {'Content-Type' => 'text/html'}, File.open("#{Public}/index.html")]
+    static = File.open("#{Public}/index.html") rescue nil
+    template = Dir["#{Templates}/index.*"][0]
+    if static
+      [200, {'Content-Type' => 'text/html'}, static]
+    elsif template
+      [200, {'Content-Type' => 'text/html'}, [Tilt.new(template).render]]
+    else
+      not_found "index.* template"
+    end
   end
 
   def not_found path
