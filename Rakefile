@@ -26,7 +26,11 @@ rescue LoadError
 
     $ gem install #{Gems.join ' '}
 
-    Or add them to your Gemfile and run `bundle install`.
+    Or add them to your Gemfile and run `bundle install`. Additionally, you
+    may want to run:
+
+    $ gem install haml coffee_script
+
   )
   exit 1
 end
@@ -52,8 +56,8 @@ class HoplaLogger < Logger
   end
 end
 
-# Steal everything coming out to stdout and ensure it conforms with
-# our asthetic standards
+# Steal everything going to stdout and ensure it conforms with
+# our aesthetic standards
 def $stdout.puts *args
   $logger.info *args
 end
@@ -85,35 +89,32 @@ Compiler = Sprockets::Environment.new Pathname(Root) do |env|
 end
 # ---
 
-# The HTTP server
+# The preview server
 server = Rack::Builder.app do
   FileServer = Rack::File.new Public
 
-  def index
-    static = File.open("#{Public}/index.html") rescue nil
-    template = Dir["#{Templates}/index.*"][0]
-    if static
-      [200, {'Content-Type' => 'text/html'}, static]
-    elsif template
+  # Tiny middleware for serving a compiled template if it exists.
+  # Requesting /foo.html looks for assets/templates/foo.*
+  Template = lambda { |env|
+    noext    = env['PATH_INFO'].sub /\.\w+$/, ''
+    path     = noext == "/" ? 'index' : noext
+    template = Dir["#{Templates/path}.*"][0]
+    if template
       [200, {'Content-Type' => 'text/html'}, [Tilt.new(template).render]]
     else
-      not_found "index.* template"
+      [404, {'Content-Type' => 'text/plain'}, ["Template not found: #{path}"]]
     end
-  end
+  }
 
-  def not_found path
-    [404, {'Content-Type' => 'text/plain'}, ["File not found: #{path}"]]
-  end
-
+  # Serve, by priority:
+  #   1 - any static files that exist in the public dir
+  #   2 - scripts and stylesheets, compiling them before serving
+  #   3 - templates matching the path requested (compiled)
   run lambda { |env|
     response = FileServer.call env
     response = Compiler.call env if response[0] == 404
-    if response[0] == 404
-      return index if env['PATH_INFO'] == '/'
-      not_found env['PATH_INFO']
-    else
-      response
-    end
+    response = Template.call env if response[0] == 404
+    response
   }
 end
 # ---
