@@ -93,13 +93,19 @@ end
 server = Rack::Builder.app do
   FileServer = Rack::File.new Public
 
-  # Tiny middleware for serving a compiled template if it exists.
-  # Requesting /foo.html looks for assets/templates/foo.*
+  # Tiny middleware for serving an index.html file for "directory"
+  # paths. E.g.: serves '/coco/index.html' if you request '/coco/'.
+  # It'll serve a compiled template for a request path should a static
+  # HTML file not exist.
   Template = lambda { |env|
+    env['PATH_INFO'] = '/' if ENV['FORCE_INDEX']
     noext    = env['PATH_INFO'].sub /\.\w+$/, ''
-    path     = noext == "/" ? 'index' : noext
+    path     = noext[-1] == "/" ? noext/'index' : noext
+    static   = Dir["#{Public/path}.html"][0]
     template = Dir["#{Templates/path}.*"][0]
-    if template
+    if static
+      [200, {'Content-Type' => 'text/html'}, File.open(static)]
+    elsif template
       [200, {'Content-Type' => 'text/html'}, [Tilt.new(template).render]]
     else
       [404, {'Content-Type' => 'text/plain'}, ["Template not found: #{path}"]]
@@ -109,7 +115,7 @@ server = Rack::Builder.app do
   # Serve, by priority:
   #   1 - any static files that exist in the public dir
   #   2 - scripts and stylesheets, compiling them before serving
-  #   3 - templates matching the path requested (compiled)
+  #   3 - index.html or compiled templates matching the path requested
   run lambda { |env|
     response = FileServer.call env
     response = Compiler.call env if response[0] == 404
