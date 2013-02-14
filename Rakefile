@@ -29,7 +29,7 @@ rescue LoadError
     Or add them to your Gemfile and run `bundle install`. Additionally, you
     may want to run:
 
-    $ gem install haml coffee_script
+    $ gem install haml coffee-script
 
   )
   exit 1
