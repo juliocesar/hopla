@@ -87,11 +87,14 @@ Hopla will:
 
 Any other libraries can be used by dropping them in the `assets/stylesheets` folder and `@import`ing them in the same way.
 
+## Extras
+
+Extras work like plugins. Hopla will load any Ruby file it finds in a `extras` folder within the project directory. Check the [extras](https://github.com/juliocesar/hopla.io/tree/master/extras) folder on GitHub for examples.
+
 # Apps/sites built using it
 
 * [Readlet](http://rdlet.com)
-* ...
-
+* [My personal website](http://awesomebydesign.com)
 
 # License
 
