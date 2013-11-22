@@ -1,7 +1,3 @@
-# Hopla
-
-See [hopla.io](http://hopla.io).
-
 # Instructions manual
 
 ## The gist
