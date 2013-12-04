@@ -14,7 +14,7 @@
 
 # Dependencies
 gems         = %w(rack colorize compass sprockets nokogiri)
-dependencies = gems + %w(pathname logger fileutils ostruct)
+dependencies = gems + %w(pathname logger fileutils ostruct tmpdir)
 begin
   dependencies.map { |lib| require lib }
 rescue LoadError
@@ -64,6 +64,10 @@ Hopla.logger.level = ::Logger::INFO
 # The styles and scripts compiler, which is just an instance of
 # Sprockets::Environment.
 Hopla.compiler = Sprockets::Environment.new Pathname(Hopla.Root) do |env|
+  
+  # Cache.
+  env.cache = Sprockets::Cache::FileStore.new(Dir.tmpdir)
+
   # Log to the standard output
   env.logger = Hopla.logger
 
